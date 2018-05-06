@@ -7,7 +7,7 @@ declare-option -hidden line-specs lint_flags
 declare-option -hidden range-specs lint_errors
 
 define-command lint -docstring 'Parse the current buffer with a linter' %{
-    %sh{
+    evaluate-commands %sh{
         dir=$(mktemp -d "${TMPDIR:-/tmp}"/kak-lint.XXXXXXXX)
         mkfifo "$dir"/fifo
         printf '%s\n' "evaluate-commands -no-hooks write $dir/buf"
@@ -63,7 +63,7 @@ define-command lint -docstring 'Parse the current buffer with a linter' %{
 
 define-command -hidden lint-show %{
     update-option buffer lint_errors
-    %sh{
+    evaluate-commands %sh{
         desc=$(printf '%s\n' "$kak_opt_lint_errors" | sed -e 's/\([^\\]\):/\1\n/g' | tail -n +2 |
                sed -ne "/^$kak_cursor_line\.[^|]\+|.*/ { s/^[^|]\+|//g; s/'/\\\\'/g; s/\\\\:/:/g; p; }")
         if [ -n "$desc" ]; then
@@ -84,7 +84,7 @@ define-command lint-disable -docstring "Disable automatic diagnostics of the cod
 
 define-command lint-next-error -docstring "Jump to the next line that contains an error" %{
     update-option buffer lint_errors
-    %sh{
+    evaluate-commands %sh{
         printf '%s\n' "$kak_opt_lint_errors" | sed -e 's/\([^\\]\):/\1\n/g' | tail -n +2 | {
             while IFS='|' read -r candidate rest
             do
@@ -105,7 +105,7 @@ define-command lint-next-error -docstring "Jump to the next line that contains a
 
 define-command lint-previous-error -docstring "Jump to the previous line that contains an error" %{
     update-option buffer lint_errors
-    %sh{
+    evaluate-commands %sh{
         printf '%s\n' "$kak_opt_lint_errors" | sed -e 's/\([^\\]\):/\1\n/g' | tail -n +2 | sort -t. -k1,1 -rn | {
             while IFS='|' read -r candidate rest
             do
